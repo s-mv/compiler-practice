@@ -4,4 +4,4 @@ run:
 	@node out/index.js
 
 build: 
-	@npx tsc
+	@npm run build
