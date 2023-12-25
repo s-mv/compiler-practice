@@ -1,4 +1,4 @@
 import { Lexer } from "./lexer";
+import { tests_run } from "./tests";
 
-let lexer = new Lexer();
-
+tests_run();
