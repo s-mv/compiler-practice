@@ -22,7 +22,18 @@ export class Token {
     this.value = value;
   }
 
-  log = () => {
+  log = (verbose: boolean = false) => {
+    switch (this.type) {
+      case TokenType.INTEGER:
+        console.log(`INT LITERAL: <${this.value}>`);
+        break;
+      case TokenType.FLOATING:
+        console.log(`FLOAT LITERAL: <${this.value}>`);
+        break;
+    }
+
+    if (!verbose) return;
+
     switch (this.type) {
       case TokenType.FILE:
         console.log(`FILE: ${this.value}`);
@@ -36,6 +47,12 @@ export class Token {
       case TokenType.ERROR:
         console.log(`ERROR: ${this.value}`);
         break;
+
+      // non-verbose tokens just break
+      case TokenType.INTEGER:
+      case TokenType.FLOATING:
+        break;
+
       default:
         console.log(`UNDOCUMENTED (${this.type}): <${this.value}>`);
         break;

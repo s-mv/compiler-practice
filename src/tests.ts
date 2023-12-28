@@ -7,9 +7,10 @@ import { readdirSync } from "fs";
 
 export let tests_run = (specific?: string) => {
   if (specific != undefined) {
+    console.log(`*** TESTING: ${specific} ***`);
     let lexer = new Lexer(specific);
     lexer.lex();
-    for (let token of lexer.tokens) token.log();
+    for (let token of lexer.tokens) token.log(true);
     return;
   }
 
@@ -19,6 +20,6 @@ export let tests_run = (specific?: string) => {
     console.log(`*** TESTING: ${file} ***`);
     let lexer = new Lexer(`./tests/${file}`);
     lexer.lex();
-    for (let token of lexer.tokens) token.log();
+    for (let token of lexer.tokens) token.log(true);
   });
 };
