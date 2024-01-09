@@ -34,9 +34,10 @@ export class Lexer {
   public lex = () => {
     for (this.index = 0; this.index < this.input.length; this.skip()) {
       this.lex_whitespace();
-      this.lex_comments();
       this.lex_operators();
       this.lex_numbers();
+      this.lex_comments();
+      this.lex_keywords();
       this.lex_identifiers();
     }
   };
@@ -52,7 +53,6 @@ export class Lexer {
     }
 
     let index_ending = this.index;
-
 
     if (index_beginning == index_ending) return;
 
@@ -110,7 +110,7 @@ export class Lexer {
     let radix = Radix.DEC;
 
     // if it isn't a decimal or doesn't have a 0, return
-    if ("0" > this.current && this.current > "9") return;
+    if ("0" > this.current || this.current > "9") return;
 
     // binary numbers
     if (this.current == "0" && this.peek.toLowerCase() == "b") {
@@ -133,7 +133,8 @@ export class Lexer {
     for (; index < this.input.length; index++) {
       let c = this.input[index];
       // later update this to include symbols
-      if (" \t\n".includes(this.input[index + 1]) || index + 1 == this.input.length) {
+      if (" \t\n".includes(this.input[index + 1])
+        || index + 1 == this.input.length) {
         let num = this.input.substring(this.index, index + 1);
 
         if (num.length == 0) break;
@@ -162,8 +163,10 @@ export class Lexer {
           break;
         }
 
-        if (dot_count == 1) token = new Token(TokenType.FLOATING, parseFloat(num));
-        else token = new Token(TokenType.INTEGER, parseInt(num, radix));
+        if (dot_count == 1)
+          token = new Token(TokenType.FLOATING, parseFloat(num));
+        else
+          token = new Token(TokenType.INTEGER, parseInt(num, radix));
 
         break;
       }
@@ -192,7 +195,7 @@ export class Lexer {
     }
 
     this.update_loc_recursive(this.index, index);
-    this.index = index;
+    this.index = index - 1;
 
     if (token.type != TokenType.NONE) this.tokens.push(token);
   };
@@ -218,6 +221,25 @@ export class Lexer {
       this.update_loc();
       this.index++;
       return;
+    }
+  };
+
+  private lex_keywords = () => {
+    for (let keyword of keywords) {
+      if (this.input.slice(this.index, this.index + keyword.length) != keyword)
+        continue;
+      let immediate_char = this.input[this.index + keyword.length];
+      // continues straight to check if it's an identifier, much time saved
+      if ("a" <= immediate_char && immediate_char <= "z") continue;
+      if ("A" <= immediate_char && immediate_char <= "Z") continue;
+      if ("0" <= immediate_char && immediate_char <= "9") continue;
+      if ("_" == immediate_char) continue;
+
+      // finally if all the negative tests have been passed
+      let token = new Token(TokenType.KEYWORD, keyword);
+      this.tokens.push(token);
+      this.update_loc_recursive(this.index, this.index + keyword.length);
+      this.index += keyword.length;
     }
   };
 
@@ -252,5 +274,4 @@ export class Lexer {
   private get peek() { return this.input[this.index + 1]; }
   private get next() { return this.input[this.index++]; }
   private get pop() { return this.input[--this.index]; }
-
 }
