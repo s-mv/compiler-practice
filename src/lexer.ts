@@ -1,6 +1,17 @@
 import { readFileSync } from "fs";
 import { Token, TokenType } from "./token";
 
+const single_char_operators = "{}[]()+-*/.,;!=><";
+const double_char_operators = ["==", "++", "--", "<<", ">>"];
+
+const keywords = [
+  "auto", "break", "case", "char", "const", "continue", "default", "do",
+  "double", "else", "enum", "extern", "float", "for", "goto", "if", "int",
+  "long", "register", "return", "short", "signed", "sizeof", "static",
+  "struct", "switch", "typedef", "union", "unsigned", "void", "volatile",
+  "while",
+];
+
 export class Lexer {
   private input: string;
   private file_path: string;
@@ -12,8 +23,6 @@ export class Lexer {
   private loc = {
     line: 1,
     column: 1,
-    line_last: 1,
-    column_last: 1,
   };
 
   constructor(file_path: string) {
@@ -26,8 +35,8 @@ export class Lexer {
     for (this.index = 0; this.index < this.input.length; this.skip()) {
       this.lex_whitespace();
       this.lex_comments();
+      this.lex_operators();
       this.lex_numbers();
-      this.lex_symbols();
       this.lex_identifiers();
     }
   };
@@ -188,8 +197,28 @@ export class Lexer {
     if (token.type != TokenType.NONE) this.tokens.push(token);
   };
 
-  private lex_symbols = () => {
+  private lex_operators = () => {
+    // first check for two character operators
+    if (double_char_operators.includes(this.current + this.peek)) {
+      let token = new Token(TokenType.OPERATOR, this.current + this.peek);
+      this.tokens.push(token);
 
+      this.update_loc(); // defaults to current
+      this.update_loc(this.peek);
+      this.index += 2;
+      return;
+    }
+
+    // now check for single character operators
+    // this way we don't have to care if the next character is a symbol
+    if (single_char_operators.includes(this.current)) {
+      let token = new Token(TokenType.OPERATOR, this.current);
+      this.tokens.push(token);
+
+      this.update_loc();
+      this.index++;
+      return;
+    }
   };
 
   private lex_identifiers = () => {
@@ -197,16 +226,11 @@ export class Lexer {
   };
 
   private line_advance = () => {
-    this.loc.line_last = this.loc.line;
-    this.loc.column_last = this.loc.column;
     this.loc.column = 1;
     this.loc.line++;
   };
 
-  private column_advance = () => {
-    this.loc.column_last = this.loc.column;
-    this.loc.column++;
-  };
+  private column_advance = () => { this.loc.column++; };
 
   private skip = () => { return ++this.index; };
 
@@ -220,8 +244,6 @@ export class Lexer {
   };
 
   private set location({ line, column }: { line: number, column: number; }) {
-    this.loc.line_last = this.loc.line;
-    this.loc.column_last = this.loc.line;
     this.loc.line = line;
     this.loc.column = column;
   }

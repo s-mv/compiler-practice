@@ -30,6 +30,8 @@ export class Token {
       case TokenType.FLOATING:
         console.log(`FLOAT LITERAL: <${this.value}>`);
         break;
+      case TokenType.OPERATOR:
+        console.log(`OPERATOR: ${this.value}`);
     }
 
     if (!verbose) return;
@@ -51,6 +53,7 @@ export class Token {
       // non-verbose tokens just break
       case TokenType.INTEGER:
       case TokenType.FLOATING:
+      case TokenType.OPERATOR:
         break;
 
       default:

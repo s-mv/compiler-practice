@@ -1,4 +1,4 @@
 // import { Lexer } from "./lexer";
 import { tests_run } from "./tests";
 
-tests_run("./tests/numbers.c");
+tests_run("./tests/operators.c");
